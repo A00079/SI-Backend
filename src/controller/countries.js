@@ -42,21 +42,40 @@ module.exports = {
             // const imagePath = image.path.replace(/\\/g, '/');
             const filePath = path.join(__dirname, '..');
             const countriesData = await readFileAsync('countries.json');
-            countriesData.countries.push(
-                {
-                    id,
-                    name,
-                    continent,
-                    "flag": image.filename,
-                    rank
+
+            for (const obj of countriesData.countries) {
+                if (obj.name === name) {
+                    return res.status(200).json({
+                        field: 'name',
+                        status: 'unsuccess',
+                        message: 'Record already exist.',
+                    });
+                } else if (obj.rank === rank) {
+                    return res.status(200).json({
+                        field: 'rank',
+                        status: 'unsuccess',
+                        message: 'Record already exist.',
+                    });
+                } else {
+                    countriesData.countries.push(
+                        {
+                            id,
+                            name,
+                            continent,
+                            "flag": image.filename,
+                            rank
+                        }
+                    );
                 }
-            );
+            }
+
             fs.writeFile(filePath + '/' + 'countries.json', JSON.stringify(countriesData), 'utf8', (err) => {
                 if (err) {
                     return res.status(500).json({ error: 'Error writing data to file.' });
                 }
 
                 return res.status(200).json({
+                    status: 'success',
                     message: 'Data received successfully.',
                 });
             });
