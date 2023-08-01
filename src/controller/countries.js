@@ -42,42 +42,60 @@ module.exports = {
             // const imagePath = image.path.replace(/\\/g, '/');
             const filePath = path.join(__dirname, '..');
             const countriesData = await readFileAsync('countries.json');
-
-            for (const obj of countriesData.countries) {
-                if (obj.name === name) {
-                    return res.status(200).json({
-                        field: 'name',
-                        status: 'unsuccess',
-                        message: 'Record already exist.',
-                    });
-                } else if (obj.rank === rank) {
-                    return res.status(200).json({
-                        field: 'rank',
-                        status: 'unsuccess',
-                        message: 'Record already exist.',
-                    });
-                } else {
-                    countriesData.countries.push(
-                        {
-                            id,
-                            name,
-                            continent,
-                            "flag": image.filename,
-                            rank
-                        }
-                    );
-                }
-            }
-
-            fs.writeFile(filePath + '/' + 'countries.json', JSON.stringify(countriesData), 'utf8', (err) => {
-                if (err) {
-                    return res.status(500).json({ error: 'Error writing data to file.' });
-                }
-
+            let isRecordExist = countriesData.countries.filter((el) => {
+                return el.name == name || el.rank == rank;
+            })
+            if (isRecordExist.length == 1) {
                 return res.status(200).json({
-                    status: 'success',
-                    message: 'Data received successfully.',
+                    field: '',
+                    status: 'unsuccess',
+                    message: 'Record already exist.',
                 });
+            } else {
+                countriesData.countries.push(
+                    {
+                        id,
+                        name,
+                        continent,
+                        "flag": image.filename,
+                        rank
+                    }
+                );
+                fs.writeFile(filePath + '/' + 'countries.json', JSON.stringify(countriesData), 'utf8', (err) => {
+                    if (err) {
+                        return res.status(500).json({ error: 'Error writing data to file.' });
+                    }
+
+                    return res.status(200).json({
+                        status: 'success',
+                        message: 'Data received successfully.',
+                    });
+                });
+            }
+        } catch (error) {
+            next(error);
+        }
+    },
+    getContinents: async (req, res, next) => {
+        try {
+            const countriesData = await readFileAsync('countries.json');
+            const newContinent = countriesData.countries.map(({ id, continent }) => ({ id, continent }));
+            res.status(201).json({
+                status: "success",
+                message: "Continent fetched successfully",
+                result: newContinent
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+    getCountryDetails: async (req, res, next) => {
+        try {
+            const countriesData = await readFileAsync('countries.json');
+            res.status(201).json({
+                status: "success",
+                message: "Countries fetched successfully",
+                result: countriesData.countries
             });
         } catch (error) {
             next(error);
